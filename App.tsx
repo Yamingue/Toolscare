@@ -1,118 +1,144 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useRef, useState } from "react"
+import { Modal, Pressable, StatusBar, StyleSheet, Text, View } from "react-native"
+import WebView from "react-native-webview"
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App = () => {
+  const [progress, setProgress] = useState(0)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [loadModal, setLoadModal] = useState(false)
+  const web = useRef()
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  return <>
+    <StatusBar backgroundColor={'red'} barStyle='dark-content' hidden={false} />
+    <View style={style.main}>
+      <WebView
+        ref={web}
+        style={style.webview}
+        source={{ uri: 'https://toolscare.umoyatech.ca' }}
+        javaScriptEnabled
+        onError={(e) => {
+          console.log(e)
+          setTimeout(() => {
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+            setModalVisible(true)
+          }, 2000)
+        }}
+        onLoadEnd={(ev) => {
+          console.log('load complet')
+          setLoadModal(false)
+        }}
+        onLoadStart={() => {
+          setLoadModal(true)
+        }}
+        onLoadProgress={({ nativeEvent }) => {
+          console.log(nativeEvent.progress)
+          let p = nativeEvent.progress * 100
+          setProgress(Math.round(p))
+        }}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>An error has occurred</Text>
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => {
+                setModalVisible(false)
+                web.current.reload()
+              }}>
+              <Text style={styles.textStyle}>Refresh</Text>
+            </Pressable>
+          </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={loadModal}
+        onRequestClose={() => {
+          setLoadModal(!loadModal);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>{progress}% loading</Text>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  </>
 }
+
+const style = StyleSheet.create({
+  main: {
+    flex: 1,
+    justifyContent: 'center',
+    marginTop:5
+  },
+  webview: {
+
+  },
+  loader: {
+    position: 'absolute',
+    height: 200,
+    width: '70%',
+    backgroundColor: '#93DE5D',
+    borderRadius: 5,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center'
+
+  }
+})
+
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
   },
-  highlight: {
-    fontWeight: '700',
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 
-export default App;
+export default App
